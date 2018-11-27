@@ -1,21 +1,14 @@
-numTrBlks = 2^15;                % Number of simulated transport blocks 
-vOut=[];               
-%vSNR=[-13 2 ];                  % SNR range in dB
-vSNR=[2:-1:-16];
+function  retvals = pysimu(IMCS,IRU,IREP,ISNR,MONO)        
+        IMCS=double(IMCS);
+        IRU=double(IRU);
+        IREP=double(IREP);
+        ISNR=double(ISNR);
+        MONO=logical(MONO);
 
-vIRU = [0:7];                       % Resource assignment field in DCI (DCI format N1 or N2)
-vIREP = [0:7];                      % Repetition number field in DCI (DCI format N1 or N2)
-vIMCS = [0:10];
+        numTrBlks = 2^15;                % Number of simulated
 
-profileName = parallel.defaultClusterProfile();
-clust = parcluster(profileName);
-%clust.NumWorkers = 8;
-%pool = parpool(clust, 8)
-job = createJob(clust);
-
-for IMCS = vIMCS
-    for IRU= vIRU
-
+        SNR = -35+ISNR*0.5;  %-35 to 25
+        
         enb.NNCellID = 0;              % NB-IoT physical cell ID
         enb.CyclicPrefixUL = 'Normal'; % NB-IoT only support normal cyclic prefix
         enb.CellRefP = 1;              % Number of NRS antenna ports, should be either 1 or 2
@@ -25,18 +18,23 @@ for IMCS = vIMCS
         npuschInfo = hNPUSCHInfo;        
         npuschInfo.IMCS = IMCS;
         npuschInfo.IRU = IRU;
+        npuschInfo.MONO = MONO;
         
 %         if npuschInfo.TBS ~= 256
 %             continue
 %         end
-            
-        
+                    
         NPUSCH.TrBlkSize = npuschInfo.TBS;                             % Transport block size
         NPUSCH.IMCS=npuschInfo.IMCS;
         %Bits Per RU
 
-        NULSLOTS=16;
-        NULSYMBSLOT=6; %7simbolos por slot, pero uno se usa para DMRS
+        if (MONO)
+            NULSLOTS=16;
+        else
+            NULSLOTS=24;
+        end
+        
+        NULSYMBSLOT=6; %7 simbols per slot minus 1 for DMRS
 
         %TODO: Revisar esto.
         G = NULSLOTS*NULSYMBSLOT*npuschInfo.Qm;                        % Number of available bits per RU
@@ -47,7 +45,7 @@ for IMCS = vIMCS
         
         NPUSCH.Qm = npuschInfo.Qm;
 
-        NPUSCH.NRUPerNPDSCH = npuschInfo.NREP*npuschInfo.NRU;
+        %NPUSCH.NRUPerNPDSCH = npuschInfo.NREP*npuschInfo.NRU;
         %NPUSCH.NSubframesPerNPDSCH = npdschInfo.NREP*npdschInfo.NSF; % The number of subframes for a NPDSCH when considering repetitions
 
         
@@ -105,25 +103,23 @@ for IMCS = vIMCS
 
         %bler = zeros(1,numel(SNR));                                % Initialize BLER result     
                 
-        for IREP=vIREP                         
-            
+                    
             npuschInfo.IREP = IREP;
             NPUSCH.NREP = npuschInfo.NREP;
             NPUSCH.IREP = npuschInfo.IREP;
             
-            for SNR = vSNR                
-                createTask(job, @runSimulation, 5, {NPUSCH, SNR, enb, numTrBlks });
-                %[rIMCS rIRU rIREP rSNR rbler] = runSimulation(NPUSCH, SNR, enb, numTrBlks );
-                %vOut=[vOut; rIMCS rIRU rIREP rSNR rbler]                
-            end                        
-        end
-    end
+            
+            
+            
+            [rIMCS rIRU rIREP rSNR rbler] = runSimulation(NPUSCH, SNR, enb, numTrBlks );
+            
+            retvals.IMCS  = IMCS;
+            retvals.IRU   = IRU;
+            retvals.IREP  = IREP;        
+            retvals.ISNR  = ISNR;
+            retvals.snr   = SNR;
+            retvals.bler  = rbler;
+            retvals.tbs   = int64(npuschInfo.TBS);
+            retvals.totru = int64(npuschInfo.NREP  * npuschInfo.NRU);
+            
 end
-
-submit(job);
-wait(job);
-y = fetchOutputs(job);
-save('npuschResults6.mat','y')
-delete(job);
-%cat(2, y{:})  % Concatenate all the cells in y into one column vector.
-

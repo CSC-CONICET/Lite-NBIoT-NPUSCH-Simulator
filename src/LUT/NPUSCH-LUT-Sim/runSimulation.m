@@ -12,15 +12,15 @@ function [IMCS IRU IREP SNR bler] = runSimulation( NPUSCH, SNR, enb, numTrBlks)
                 IRU=NPUSCH.IRU;
                 IREP=NPUSCH.IREP;
                 bler=nan;
-                outFileName=sprintf('%i_%i_%i_%f.csv',[IMCS IRU IREP SNR]); 
+                %outFileName=sprintf('%i_%i_%i_%f.csv',[IMCS IRU IREP SNR]); 
                 
-                if exist(outFileName, 'file') 
-                    return
-                end
+%                 if exist(outFileName, 'file') 
+%                     return
+%                 end
                 
                 rng('shuffle','combRecursive');
 
-                fprintf('\nSimulating at %gdB SNR\n' ,SNR);
+                %fprintf('\nSimulating at %gdB SNR\n' ,SNR);
                 
                 txCodedTrblk = [];                                 % Initialize the transmitted coded transport block
                 rxCodedTrblk = zeros(NPUSCH.CodedTrBlkSize,1);     % Pre-allocate the received coded transport block after soft-combing                                
@@ -78,7 +78,7 @@ function [IMCS IRU IREP SNR bler] = runSimulation( NPUSCH, SNR, enb, numTrBlks)
                         %txNpdschSymbols = lteDLPrecode(enb,NPDSCH,layerMappedSymbols); 
 
                         % Get SNR in linear form, generate and add noise
-                        snr = 10.^(SNR/10);
+                        snr = double(10).^double(SNR/10);
                         npuschSize = size(txNpuschSymbols);                                                
                         
                         noise = (1/2)*sqrt(1/snr)*complex(randn(npuschSize),randn(npuschSize));
@@ -147,6 +147,6 @@ function [IMCS IRU IREP SNR bler] = runSimulation( NPUSCH, SNR, enb, numTrBlks)
                 %bler(snrIdx) = numBlkErrors/numTrBlks;
                 bler = numBlkErrors/numTrBlks;
                 
-                csvwrite(outFileName,[IMCS IRU IREP SNR bler]);
+                %csvwrite(outFileName,[IMCS IRU IREP SNR bler]);
                 
 end       

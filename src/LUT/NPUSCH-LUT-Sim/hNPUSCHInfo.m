@@ -1,24 +1,6 @@
-% NB-IoT NPDSCH Information
-%
-% The class provides NPDSCH related information: the number of
-% subframes for a NPDSCH (NSF), the number of repetitions for NPDSCH
-% transmission (NREP), the transport block size (TBS) and subframe
-% pattern for NPDSCH transmission, based on a set of chosen parameters:
-% Scheme, ISF, IREP, IMCS and SchedulingInfoSIB1. 
-%
-% Scheme indicates whether the NPDSCH transmission carries
-% SystemInformationBlockType1-NB (SIB1-NB) or not, and whether the NPDSCH
-% transmission carries the broadcast control channel (BCCH) or not. The
-% allowed values are 'CarrySIB1NB', 'CarryBCCHNotSIB1NB' and
-% 'NotCarryBCCH'. Note that SIB1-NB belongs to BCCH. When NPDSCH carries
-% SIB1-NB, use ISF and SchedulingInfoSIB1 to control NSF, NREP and TBS;
-% When NPDSCH does not carry SIB1-NB, use ISF, IREP and IMCS to control
-% NSF, NREP and TBS.
-%
-% Note: TBS may be returned as empty when NPDSCH does not carry SIB1-NB,
-% e.g., when ISF = 4 and IMCS = 9, no TBS is defined.
+% Based on Mathworks NB-IoT NPDSCH Information (Copyright 2017 The MathWorks, Inc.)
 
-%   Copyright 2017 The MathWorks, Inc.
+% The class provides NPUSCH related information
 
 classdef hNPUSCHInfo
     
@@ -36,6 +18,11 @@ classdef hNPUSCHInfo
         pIREP = 1;
         pIMCS = 1;
         %pSchedulingInfoSIB1 = 0;
+    end
+    
+    properties (Access=public)
+        %pScheme = 'CarryBCCHNotSIB1NB';
+        MONO = 1;        
     end
     
     properties(Dependent,SetAccess = private) 
@@ -61,13 +48,16 @@ classdef hNPUSCHInfo
     methods
         
 
-        function param = get.ITBS(obj) 
+        function param = get.ITBS(obj)
+            param = [];
+            if (obj.MONO)
                  m = (obj.ITBSTable.IMSC == obj.IMCS);
                  if any(m)
-                     param = obj.ITBSTable.ITBS(m);
-                 else
-                     param = [];
+                     param = obj.ITBSTable.ITBS(m);                     
                  end
+            else
+                param = obj.IMCS;
+            end
         end
         
         function t = get.TBS(obj)
@@ -90,8 +80,12 @@ classdef hNPUSCHInfo
         end
         
         function n = get.Qm(obj)            
-            m = obj.QmTable.IMCS==obj.IMCS;
-            n = obj.QmTable.Qm(m);
+            if (obj.MONO)
+                m = obj.QmTable.IMCS==obj.IMCS;
+                n = obj.QmTable.Qm(m);
+            else
+                n=2;
+            end 
         end     
         
     end
@@ -159,7 +153,7 @@ end
 
 
 function tab = getITBSTable()
-    IMSC=(0:10).'; 
+    IMSC=(0:10).';
     ITBS=[0 2 1 3:10].';
     tab = table(IMSC,ITBS);
     tab.Properties.Description = 'Table 16.5.1.2-1: Modulation and TBS index table for NPUSCH with N_sc^RU = 1';
