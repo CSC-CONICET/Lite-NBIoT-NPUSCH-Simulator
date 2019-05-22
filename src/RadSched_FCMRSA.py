@@ -58,7 +58,7 @@ class RadSched_FCMRSA:
 		while i < n and not stop :
 
 			if	self.LUT[i][0] == simulator.curr_TBS and \
-				abs( estimated_SNR - self.LUT[i][1] ) < 0.5 :
+				abs( estimated_SNR - self.LUT[i][1] ) < 0.1 :
 
 				if i_min == -1 :
 					i_min = i
@@ -68,7 +68,6 @@ class RadSched_FCMRSA:
 					self.LUT[i][5] < nrus :
 					i_min = i
 					nrus = self.LUT[i_min][5]
-
 
 				if	self.LUT[i][2] > simulator.target_BLER :
 					stop = True

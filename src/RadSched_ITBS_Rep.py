@@ -8,7 +8,7 @@ from math import ceil
 class RadSched_ITBS_Rep:
 
 	def __init__(self):
-		self.label = "ITBS-Rep"
+		self.label = "ITBS-NR"
 		self.BLER_updated_time = 0
 		self.BLER_T = 320
 		self.last_BLER = -1
@@ -52,7 +52,6 @@ class RadSched_ITBS_Rep:
 				curr_ITBS = curr_ITBS - 1
 			else:
 				curr_nbr_rep = min( 2 * curr_nbr_rep , simulator.nbr_rep_max)
-				
 
 		return curr_nbr_rep, curr_ITBS, self.last_BLER
 

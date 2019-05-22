@@ -29,7 +29,7 @@ def initSchedulers():
 
 def initTransBlocks():
 
-	nbr_of_blocks = 20
+	nbr_of_blocks = 500
 	TBSs = [256] * nbr_of_blocks
 	TB_ids = list(range(10,nbr_of_blocks+10))
 
@@ -48,22 +48,24 @@ def main():
 	# Initiate schedulers
 	schedulers = initSchedulers()
 
-    # BLER
+	# BLER
 	init_BLER = 1
 	error_BLER = 0.0 # 0.03
 	measured_BLER_error = 0.0 # 0.25
 
 	# Initiate blocks sizes and SNR
 	TBSs, TB_ids = initTransBlocks()
+	init_ITBS = 4
+	init_nr = 64
 
 	# SNR list values
-	snrs = [-27,-24,-21,-18]
+	snrs = [-24,-20,-16]
 
 	comm_overhead = 0.012
 	comm_init_overhead = 3 * 0.012
 	ru_time = 0.008
 	
-	# Simudelayor
+	# Simulate
 	sim = RadSchedSim()
 
 
@@ -74,9 +76,9 @@ def main():
 	for ret in [ True, False ]:
 
 		if ret :
-			targetBLERs = [ 0.035 ]
+			targetBLERs = [ 0.05 ]
 		else:
-			targetBLERs = [ 0, 0.035 ]
+			targetBLERs = [ 0, 0.05 ]
 
 		for tb in targetBLERs :
 
@@ -115,14 +117,20 @@ def main():
 
 						print ( "{0:.2f}".format( j / ( experiments_nbr - 1 ) * 100 ),"%", end="\r")
 
-						# Init transmission blocks and SNR:
+						# Init.
 						TBSs, TB_ids = initTransBlocks()
 						
 						SNR_t = [snr] * len(TB_ids) * 1280
-						
-						# Simudelaye
-						sim.init(	schedulers[i], ret, init_BLER, tb, error_BLER, \
-									measured_BLER_error, TBSs, TB_ids, SNR_t)
+
+						init_ITBS = random.randint(0, 8)
+
+						init_nr = pow(2,random.randint(0, 7))
+
+						# Simulate
+						sim.init(	schedulers[i], ret, 
+								init_ITBS, init_nr, init_BLER,
+								tb, error_BLER, \
+								measured_BLER_error, TBSs, TB_ids, SNR_t)
 
 						sim.simulate()
 
@@ -132,18 +140,14 @@ def main():
 						nbr_RUs.append( sim.getNbrRUs() )
 						delay.append( sim.getNbrRUs() * ru_time + comm_overhead )
 
-					if snr == snrs[0]:
-						sim.plot_results(	str(schedulers[i].getLabel()) + "_targetBLER_"
-											+ str(int(tb*100)) + "_SNR_" + str(snr)
-											+ "_ret_" + str(ret) + ".pdf")
 
-					# Calcudelaye averages
+					# Calculate averages
 					if not ret:
 						tb_losses_avg = sum( tb_losses ) / experiments_nbr
 					nbr_RUs_avg = sum( nbr_RUs ) / experiments_nbr
 					delay_avg = sum( delay ) / experiments_nbr
 
-					# Calcudelaye standard deviations
+					# Calculate standard deviations
 					if not ret:
 						s = 0
 						for x in tb_losses:
@@ -228,10 +232,10 @@ def plot_figure( out_file, x_axis_label, y_axis_label, snrs,
 				 schedulers, avgs_by_sched , devs_by_sched, 
 				 targetBLER):
 
-	fig = plt.figure()
-
 	plt.style.use('seaborn-darkgrid')
-	plt.rcParams.update({'font.size': 13})
+	plt.rcParams.update({'font.size': 15})
+	
+	fig = plt.figure()
 	
 	avgs_by_sched_trans = list(map(list, zip(*avgs_by_sched)))
 	legends = []

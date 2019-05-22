@@ -1,10 +1,15 @@
-
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import random
 from math import log10
 import csv
+
+# import inspect, os
+# import sqlite3
+# from threading import Thread, Event, Lock
+# import matlab.engine
+# import logging
+
 
 class RadSchedSim:
 
@@ -95,8 +100,11 @@ class RadSchedSim:
 		curr_TBS = -1
 		curr_TB_id = -1
 
+
 		
-	def init(	self, scheduler, retransmit, init_BLER, target_BLER, error_BLER, \
+	def init(	self, scheduler, retransmit, 
+				init_ITBS, init_nr, init_BLER, \
+				target_BLER, error_BLER, \
 				measured_BLER_error, TBSs, TB_ids, SNR_t):
 
 		# Scheduling algorithm
@@ -119,16 +127,16 @@ class RadSchedSim:
 		self.nbr_succ_TB_trans = 0
 
 		# Repetitions		
-		self.nbr_repetitions = [64]	
+		self.nbr_repetitions = [init_nr]
 		self.HARQ_feedback = ['NACK']
 		
 		self.nbr_rep_max = 128
 		self.nbr_rep_min = 1
 
 		# ITBS level
-		self.ITBS = [5] # Initial ITBS level = 8 (for 256 bits)
+		self.ITBS = [init_ITBS] # Initial ITBS level = 8 (for 256 bits)
 		self.ITBS_min = 0 
-		self.ITBS_max = 10
+		self.ITBS_max = 8
 
 		# RU time
 		self.RU_acum = [0]
@@ -154,6 +162,14 @@ class RadSchedSim:
 
 		curr_TBS = -1
 		curr_TB_id = -1
+
+		# rootdir="../src/NPUSCH-Simulator/"
+		# logging.basicConfig(filename=os.path.join(rootdir,"sample.log"),
+		# 					format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+		# 					datefmt='%m-%d %H:%M',
+		# 					level=logging.INFO)
+		# logging.getLogger().addHandler(logging.StreamHandler())
+		# eng = matlab.engine.start_matlab( "-sd %s" % rootdir )
 
 
 	def load_LUT(self,LUT):
@@ -220,10 +236,11 @@ class RadSchedSim:
 				curr_nbr_ret += 1
 				self.TBSs.insert(0, curr_TBS )
 				self.TB_ids.insert(0, curr_TB_id)
-				#self.TB_ids.insert(0, 0) # self.TB_ids.insert(0, curr_TB_id) ???
+				#self.TB_ids.insert(0, 0) # self.TB_ids.insert(0, curr_TB_id) ??
 				
 			# Calculate chanel BLER for the next iteration
-			curr_BLER_CHANEL = self.getBLER(self.snr,curr_TBS,curr_ITBS,curr_nbr_rep,curr_nbr_ret)
+			curr_BLER_CHANEL = self.getBLER(self.snr,curr_TBS,curr_ITBS,
+											curr_nbr_rep,curr_nbr_ret)
 			self.BLER_CHANEL.append(curr_BLER_CHANEL)
 
 			# Update SNR
@@ -271,20 +288,21 @@ class RadSchedSim:
 			effective_SNR =  curr_SNR + 10. * log10(curr_nbr_ret)
 			
 		i = 0
-
-		while self.LUT[i][0] < effective_SNR :
+		n = len(self.LUT)
+		
+		while i < n and self.LUT[i][0] < effective_SNR :
 			i += 1
 
-		# while self.LUT[i][1] != curr_TBS :
-		# 	i += 1
-		while self.LUT[i][1] < curr_TBS :
+		while i < n and self.LUT[i][1] < curr_TBS :
 		 	i += 1
 		
-		while self.LUT[i][2] < curr_ITBS :
+		while i < n and self.LUT[i][2] < curr_ITBS :
 			i += 1
 
-		while self.LUT[i][3] < curr_nbr_rep :
+		while i < n and self.LUT[i][3] < curr_nbr_rep :
 			i += 1
+
+		#print(effective_SNR,curr_TBS,curr_ITBS,curr_nbr_rep)
 
 		return self.LUT[i][4]
 
@@ -349,6 +367,34 @@ class RadSchedSim:
 			curr_HARQ_feedback = 'NACK'
 		return curr_HARQ_feedback
 
+		# if self.curr_ITBS == 1:
+		# 	IMCS = 2
+		# elif self.curr_ITBS == 2:
+		# 	IMCS = 1
+		# else:
+		# 	IMCS = self.curr_ITBS
+		
+		# n = self.ITBS_IRU_TBS[self.curr_ITBS][0]
+		# j = 0
+		# while j < n and self.ITBS_IRU_TBS[self.curr_ITBS][j] != 256:
+		# 	j = j + 1
+		# if self.ITBS_IRU_TBS[self.curr_ITBS][j] == 256:
+		# 	IRU = j
+		# else:
+		# 	IRU = -1
+
+		# IREP = self.curr_nbr_rep
+		# SNR = self.SNR_t[-1]
+		# MONO = 1
+		# result=eng.pysimu(IMCS,IRU,IREP,SNR,MONO)
+
+		# if result['bler'] == 1:
+		# 	curr_HARQ_feedback = 'ACK'
+		# else:
+		# 	curr_HARQ_feedback = 'NACK'
+		# return curr_HARQ_feedback
+
+
 	def getFinalTime(self):
 		return self.time[-1]
 
@@ -377,72 +423,114 @@ class RadSchedSim:
 
 	def plot_results(self,out_file):
 
-		fig = plt.figure()
+		plt.style.use('seaborn-dark')
 
-		plt.style.use('seaborn-darkgrid')
-		plt.rcParams.update({'font.size': 8})
+		plt.rcParams.update({'font.size': 15})
 
 		RU_acum_min = self.RU_acum[0] 
 		RU_acum_max = self.RU_acum[-1]
 		h = [0, 1]
 
 		if not self.retransmit:
-			RU_acum_max = 8500
+			RU_acum_max = 3500
 			self.nbr_blocks = 5
 		else:
-			RU_acum_max = 21000
+			RU_acum_max = 8000
+
+		i_max = 0
+		while i_max < len(self.RU_acum) and self.RU_acum[i_max] < RU_acum_max :
+				i_max = i_max + 1
+		i_max = i_max - 1
+
+
+		if not self.retransmit:
+			i_max = 3
+		else:
+			i_max = 8
+		
+
 
 		fig = plt.figure()
 
-		n = 5
+		n = 4
 
 		color = 'Red'
 
 		id_subplot = n * 100 + 11
-		plt.subplot(id_subplot)
+		ax = plt.subplot(id_subplot)
 		plt.plot(self.RU_acum, self.ITBS, 'r--')
 		plt.scatter(self.RU_acum, self.ITBS, c=color, alpha=0.3)
-		plt.ylabel('ITBS')
-		plt.xlabel('NPUSCH resource usage \ RUs')
-		plt.ylim(self.ITBS_min-1,self.ITBS_max+1)
+		plt.ylabel("I$_{TBS}$", rotation=0, ha='right')
+		plt.xlabel('No. of transfers')
+		iterations = list(range(len(self.RU_acum)))
+		plt.xticks(self.RU_acum, iterations)
+		plt.yticks([self.ITBS_min,self.ITBS_max])
 		plt.xlim(RU_acum_min,RU_acum_max)
+		plt.ylim(self.ITBS_min-1,self.ITBS_max+1)
+		ax.xaxis.tick_top()
+		ax.xaxis.set_label_position('top')
 
 		id_subplot += 1
-		plt.subplot(id_subplot)
+		ax = plt.subplot(id_subplot)
 		plt.plot(self.RU_acum, self.nbr_repetitions, 'r--')
 		plt.scatter(self.RU_acum, self.nbr_repetitions, c=color, alpha=0.3)
-		plt.ylabel('NR')
-		plt.xlabel('NPUSCH resource usage \ RUs')
+		plt.ylabel('NR', rotation=0, ha='right')
 		plt.ylim(-1,self.nbr_rep_max+10)
 		plt.xlim(RU_acum_min,RU_acum_max)
+		plt.yticks([self.nbr_rep_min,self.nbr_rep_max])
+		plt.xticks([], [])
 
 		id_subplot += 1
 		plt.subplot(id_subplot)
 		plt.plot(self.RU_acum, self.BLER_CHANEL, 'r--')
 		plt.scatter(self.RU_acum, self.BLER_CHANEL, c=color, alpha=0.3)
-		plt.ylabel('NPUSCH\n BLER at BS')
+		plt.ylabel('BLER', rotation=0, ha='right')
 		plt.ylim(-0.1,1.1)
-		plt.xlabel('NPUSCH resource usage \ RUs')
 		plt.xlim(RU_acum_min,RU_acum_max)
+		plt.yticks([0,1])
+		plt.xticks([], [])
 		
 		id_subplot += 1
-		plt.subplot(id_subplot)
-		plt.plot(self.RU_acum, self.nbr_acks_acum, 'r--')
+		ax = plt.subplot(id_subplot)
+		#plt.plot(self.RU_acum, self.nbr_acks_acum, 'r--')
+		ax.fill_between(self.RU_acum, 0,self.nbr_acks_acum, facecolor="red", alpha=.3)
 		plt.scatter(self.RU_acum, self.nbr_acks_acum, c=color, alpha=0.3)
-		plt.ylabel('No. of successful\ntransmissions')
+		plt.ylabel('Succ.\narrivals', rotation=0, ha='right')
 		plt.xlabel('NPUSCH resource usage \ RUs')
-		plt.ylim(-2,self.nbr_blocks+2)
+		#plt.ylim(-2,self.nbr_blocks+2)
+		plt.ylim(0,i_max)
 		plt.xlim(RU_acum_min,RU_acum_max)
+		#plt.yticks([0,self.nbr_blocks])
+		plt.yticks([0,i_max])
 
-		id_subplot += 1
-		plt.subplot(id_subplot)
-		X, Y = np.meshgrid(self.RU_acum, h)
-		plt.pcolor(X,Y,[self.TB_ids], cmap='Reds')
-		plt.ylabel('TB Ids')
-		plt.xlabel('NPUSCH resource usage \ RUs')
-		plt.xlim(RU_acum_min,RU_acum_max)
+		# id_subplot += 1
+		# ax = plt.subplot(id_subplot)
+		# X, Y = np.meshgrid(self.RU_acum, h)
 
-		fig.set_size_inches(8, 6)
+		# plt.pcolor(X,Y,[self.TB_ids], cmap='Spectral')
+		# plt.ylabel('TB Ids', rotation=0, ha='right')
+		# plt.xlabel('NPUSCH resource usage \ RUs')
+		# plt.xlim(RU_acum_min,RU_acum_max)
+		# plt.yticks([], [])
+
+		i = 1
+		while i < len(self.TB_ids):
+			if self.TB_ids[i-1] != self.TB_ids[i] and self.RU_acum[i] <= RU_acum_max :
+				ax.axvline(x=self.RU_acum[i], ymin=0, ymax=4.55, c='gray', 
+				lw=1, zorder=1000, clip_on=False)
+			i = i + 1
+		
+		if self.scheduler.getLabel() != 'ITBS-NR' or not self.retransmit:
+			i = 1
+			while i < len(self.BLER_CHANEL) and self.BLER_CHANEL[i] > 0.05 :
+				i = i + 1
+			if i < len(self.BLER_CHANEL):
+				ax.axvline(x=self.RU_acum[i], ymin=0, ymax=4.55, c='k', lw=3,
+				 zorder=1000, clip_on=False)
+
+
+		fig.set_size_inches(10, 5)
 		plt.tight_layout()
+		plt.subplots_adjust(wspace=0, hspace=0.18)
 		plt.savefig(out_file, dpi=500)
 		plt.close(fig)

@@ -7,9 +7,9 @@ import csv
 plt.style.use('seaborn-darkgrid')
 plt.rcParams.update({'font.size': 13})
 
-line_style = [ 'r-', 'r--' , 'r-.' , 'r:' ]
-snrs = [-27,-24,-21,-18]
-#snrs = [-28,-24,-20,-16]
+line_style = [ 'r-', 'r--' , 'r-.' , 'r:', 'r-' ]
+#snrs = [-24,-22,-20,-18,-16]
+snrs = [-24,-20,-16]
 comm_overhead = 0.012
 comm_init_overhead = 3 * 0.012
 ru_time = 0.008
@@ -58,21 +58,27 @@ with open('../src/LUT/LUT1.csv', 'r') as f:
 
 	# Plot graphics
 
+	fig = plt.figure()
+	fig.set_size_inches(8, 4)
+
 	n = len(n_result)
+
 	for i in range(n):
 		plt.plot(b_result[i],n_result[i],line_style[i],label="SNR {0} dB".format(snrs[i]), linewidth=1.5)
 		plt.scatter(b_result[i], n_result[i], c='r', s=70, alpha=0.3)
+		
 		#print( 'Non-retransmission, SNR:', snrs[i], ', nru-decrease:', 100 - n_result[i][1] * 100 / n_result[i][0])
 		# l = 0
 		# while b_result[i][l] < 4 : 
 		# 	print( b_result[i][l] , n_result[i][l] )
 		# 	l += 1
 
-	plt.legend()
+	legend = plt.legend(loc='upper right', ncol=3)
 	plt.ylabel('NPUSCH resource usage \ RUs')
 	plt.xlabel('% block losses')
-	plt.ylim(20,1350) 
+	plt.ylim(100,1500) 
 	plt.xlim(-1,30)
+	#plt.yscale('log')
 	plt.tight_layout()
 	plt.savefig("nru_bler_nonret.pdf", dpi=500)
 	plt.close()
@@ -182,6 +188,7 @@ with open('../src/LUT/LUT1.csv', 'r') as f:
 	# Plot graphics
 
 	fig = plt.figure()
+	fig.set_size_inches(8, 4)
 	
 	n = len(n_result)
 	for i in range(n):
@@ -194,10 +201,10 @@ with open('../src/LUT/LUT1.csv', 'r') as f:
 		# 	l += 1
 
 
-	plt.legend(loc='upper left')
+	plt.legend(loc='upper right', ncol=3)
 	plt.ylabel('NPUSCH resource usage \ RUs')
 	plt.xlabel('% block losses')
-	plt.ylim(0,2000) 
+	plt.ylim(0,1800) 
 	plt.xlim(-1,30) 
 	plt.tight_layout()
 	plt.savefig("nru_bler_ret.pdf", dpi=500)
@@ -228,6 +235,5 @@ with open('../src/LUT/LUT1.csv', 'r') as f:
 	plt.ylim(1,4)
 	plt.xlim(-1,30) 
 	plt.tight_layout()
-	fig.set_size_inches(8, 6)
 	plt.savefig("nret_bler_ret.pdf", dpi=500)
 	plt.close()

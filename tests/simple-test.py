@@ -30,15 +30,19 @@ target_BLER = 0.
 error_BLER = 0.0 # 0.03
 measured_BLER_error = 0.0 # 0.25
 
+init_ITBS = 4
+init_nr = 64
+
 nbr_of_blocks = 20
 TBSs = [256] * nbr_of_blocks
 TB_ids = list(range(10,nbr_of_blocks+10))
 
-SNR_t = [-27] * len(TB_ids) * 1280
+SNR_t = [-24] * len(TB_ids) * 1280
 
 sim = RadSchedSim()
 
-sim.init(	scheduler, retransmit, init_BLER, target_BLER, error_BLER, \
+sim.init(	scheduler, retransmit, init_ITBS, init_nr, init_BLER, \
+			target_BLER, error_BLER, \
 			measured_BLER_error, TBSs, TB_ids, SNR_t)
 sim.simulate()
 sim.plot_results(	"SimpleTest_" + str(scheduler.getLabel()) + "_targetBLER_" 

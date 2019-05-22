@@ -8,7 +8,7 @@ from math import ceil
 class RadSched_ITBS_and_Rep:
 
 	def __init__(self):
-		self.label = "ITBS&Rep"
+		self.label = "ITBS&NR"
 		self.BLER_updated_time = 0
 		self.BLER_T = 320
 		self.last_BLER = -1
