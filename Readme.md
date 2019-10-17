@@ -17,7 +17,7 @@ This code was explicitly used in the following scientific publications:
 ## NPUSCH-BLER-Sim
 
 - Simulation of the uplink layer based on the Matlab Toolkit module: Uplink Waveform Generation. The link layer model was implemented according to the NB-IoT physical uplink shared channel (NPUSCH) standard. Montecarlo simulations were performed over an AWGN channel in order to obtain block error rate (BLER) information for the different link layer configurations. The outcome of the simulation was used to trace BLER curves and obtain optimal link settings for target BLERs.
-<img src="fig1.jpg" width="500" alt="BLER curves">
+<img src="fig1.jpg" width="100%" alt="BLER curves">
  
 - Software requirements
     * python 2.7
