@@ -1,18 +1,10 @@
 #
 # Lite NBIoT NPUSCH Simulator
 
-We developed a lite NB-IoT NPUSCH simulator based in two main simulation codes:
-
-- **NPUSCH-BLER-Sim**: it is a simulation of the uplink layer based on the Matlab Toolkit module: Uplink Waveform Generation. The link layer model was implemented according to the NB-IoT physical uplink shared channel (NPUSCH) standard. Montecarlo simulations were performed over an AWGN channel in order to obtain block error rate (BLER) information for the different link layer configurations. The outcome of the simulation was used to trace BLER curves and obtain optimal link settings for target BLERs.
-<img src="fig1.jpg" alt="BLER curves">
- 
-- **NPUSCH-Transmission-Sim**: It models the uplink iterative sub-process, where the BS determines the (ITBS,NR) tuple and sends this information to the UE.
-<img src="fig2.jpg" alt="ITBS-NR algorithm example">
-
-This software was used in the references below to asses strategies for decreasing radio resource consumption.
+We developed a lite NB-IoT NPUSCH simulator based in two main simulation codes:  **NPUSCH-BLER-Sim** and **NPUSCH-Transmission-Sim**. This software was used in the references below to asses strategies for decreasing radio resource consumption.
 
 
-# Scientific references
+## Scientific references
 
 This code was explicitly used in the following scientific publications:
 
@@ -22,9 +14,12 @@ This code was explicitly used in the following scientific publications:
 - E. Luján, A. Otero, S. Valenzuela, E. Mocskos, L. A. Steffenel and S. Nesmachnow. “Cloud Computing for Smart Energy Management (CC-SEM project)”. Communications in Computer and Information Science. Springer. Congreso Iberoamericano de Ciudades Inteligentes (ICSC-CITIES 2018). Soria, España. 2018.
 
 
-# NPUSCH-BLER-Sim
+## NPUSCH-BLER-Sim
 
-- Requirements
+- Simulation of the uplink layer based on the Matlab Toolkit module: Uplink Waveform Generation. The link layer model was implemented according to the NB-IoT physical uplink shared channel (NPUSCH) standard. Montecarlo simulations were performed over an AWGN channel in order to obtain block error rate (BLER) information for the different link layer configurations. The outcome of the simulation was used to trace BLER curves and obtain optimal link settings for target BLERs.
+<img src="fig1.jpg" width="500" alt="BLER curves">
+ 
+- Software requirements
     * python 2.7
     * MATLAB 2017b Engine API for Python
 - Execution instructions
@@ -43,9 +38,12 @@ This code was explicitly used in the following scientific publications:
     python monitor.py 
     ```
 
-# NPUSCH-Transmission-Sim
+## NPUSCH-Transmission-Sim
 
-- Requirements
+- It models the uplink iterative sub-process, where the BS determines the (ITBS,NR) tuple and sends this information to the UE.
+<img src="fig2.jpg" width="380" alt="ITBS-NR algorithm example">
+
+- Software requirements
     - python 3
     - NPUSCH-BLER-Sim (needed fot the LUT generation)
 - Execution instructions
@@ -56,4 +54,5 @@ This code was explicitly used in the following scientific publications:
 - Output: PDF files with information about
     - No. of resource units vs BLER
     - Scheduling algorithm performance comparation
+
 
