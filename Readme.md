@@ -55,4 +55,3 @@ This code was explicitly used in the following scientific publications:
     - No. of resource units vs BLER
     - Scheduling algorithm performance comparation
 
-
