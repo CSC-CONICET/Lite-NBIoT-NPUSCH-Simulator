@@ -1,7 +1,7 @@
 #
 # Lite NBIoT NPUSCH Simulator
 
-We developed a lite NB-IoT NPUSCH simulator based in two main simulation codes:  **NPUSCH-BLER-Sim** and **NPUSCH-Transmission-Sim**. This software was used in the references below to asses strategies for decreasing radio resource consumption.
+We developed a lite NB-IoT NPUSCH simulator based on two main simulation codes:  **NPUSCH-BLER-Sim** and **NPUSCH-Transmission-Sim**. This software was used in the references below to asses strategies for decreasing radio resource consumption.
 
 
 ## Scientific references
@@ -40,7 +40,7 @@ This code was explicitly used in the following scientific publications:
 
 ## NPUSCH-Transmission-Sim
 
-- It models the uplink iterative sub-process, where the BS determines the (ITBS,NR) tuple and sends this information to the UE.
+- It models the uplink iterative sub-process, where the BS determines the (MCS,NR) tuple and sends this information to the UE.
 <img src="fig2.jpg" width="380" alt="ITBS-NR algorithm example">
 
 - Software requirements
