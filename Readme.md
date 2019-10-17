@@ -48,7 +48,7 @@ This code was explicitly used in the following scientific publications:
     - NPUSCH-BLER-Sim (needed for the LUT generation)
 - Execution instructions
     ```
-    cd NPUSCH-Sim/cases
+    cd NPUSCH-Transmission-Sim/cases
     make
     ```
 - Output: PDF files with information about
