@@ -45,7 +45,7 @@ This code was explicitly used in the following scientific publications:
 
 - Software requirements
     - python 3
-    - NPUSCH-BLER-Sim (needed fot the LUT generation)
+    - NPUSCH-BLER-Sim (needed for the LUT generation)
 - Execution instructions
     ```
     cd NPUSCH-Sim/cases
